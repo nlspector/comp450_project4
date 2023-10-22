@@ -34,8 +34,8 @@ public:
     }
 };
 
-void pendulumODE(const ompl::control::ODESolver::StateType &/* q */, const ompl::control::Control */* control */,
-                 ompl::control::ODESolver::StateType &/* qdot */) // 
+void pendulumODE(const ompl::control::ODESolver::StateType &q, const ompl::control::Control *control,
+                 ompl::control::ODESolver::StateType &qdot)
 {
     // TODO: Fill in the ODE for the pendulum's dynamics
     void ODE(const oc::ODESolver::StateType &q, const oc::Control* u, oc::ODESolver::StateType& qdot)
@@ -43,7 +43,7 @@ void pendulumODE(const ompl::control::ODESolver::StateType &/* q */, const ompl:
     {
      // Retrieve control values. pendulum theta is the first value
         const double *u = c->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
-        const double theta = u[0];
+        const double omega = u[0];
     
         // Retrieve the current orientation of the pendulum.  The memory for ompl::base::SE2StateSpace is mapped as:
         // 0: theta
@@ -79,13 +79,13 @@ ompl::control::SimpleSetupPtr createPendulum(double torque)
     return nullptr;
 }
 
-void planPendulum(ompl::control::SimpleSetupPtr &/* ss */, int /* choice */)
+void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
 {
     // TODO: Do some motion planning for the pendulum
     // choice is what planner to use.
 }
 
-void benchmarkPendulum(ompl::control::SimpleSetupPtr &/* ss */)
+void benchmarkPendulum(ompl::control::SimpleSetupPtr &ss)
 {
     // TODO: Do some benchmarking for the pendulum
 }
