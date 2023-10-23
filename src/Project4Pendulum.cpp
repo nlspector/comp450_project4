@@ -65,20 +65,30 @@ ompl::control::SimpleSetupPtr createPendulum(double torque)
     // planning.
     auto space(std::make_shared<ompl::base::CompoundStateSpace>());
     space->addSubspace(std::make_shared<ompl::base::SO2StateSpace>(), 1.0d);
-    space->addSubspace(std::make_shared<ompl::base::RealVectorSpace>(1), 1.0d);
+    auto speedSpace(std::make_shared<ompl::base::RealVectorSpace>(1));
+    ompl::base::RealVectorBounds bounds(1);
+    bounds.setLow(-10);
+    bounds.setHigh(10);
+    space->addSubspace(bounds, 1.0d);
+
     auto cspace(std::make_shared<ompl::control::RealVectorControlSpace>(space, 1));
     
-    auto si(std::make_shared<ompl::base::SpaceInformation>(space));
-    auto ss(std::make_shared<ompl::control::SimpleSetup>(si));
+    ompl::base::RealVectorBounds cbounds(1);
+    cbounds.setLow(-torque);
+    cbounds.setHigh(torque);
 
-    si->setStateValidityChecker(
-        [obstacles](const ompl::base::State *state) {
+    auto ss(std::make_shared<ompl::control::SimpleSetup>(cspace));
+    ompl::control::SpaceInformation *si = ss->getSpaceInformation().get();
+
+    // Speed is accounted for in the bounds of the speed space
+    ss->setStateValidityChecker(
+        [si](const ompl::base::State *state) {
             return true;
         }
     );
-    si->setup();
+    ss->setup();
 
-    return nullptr;
+    return ss;
 }
 
 void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
