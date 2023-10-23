@@ -24,13 +24,14 @@ public:
 
     unsigned int getDimension() const override
     {
-        // TODO: The dimension of your projection for the pendulum
-        return 0;
+        return 2;
     }
 
-    void project(const ompl::base::State */* state */, Eigen::Ref<Eigen::VectorXd> /* projection */) const override
+    void project(const ompl::base::State *state, Eigen::Ref<Eigen::VectorXd> *projection) const override
     {
-        // TODO: Your projection for the pendulum
+        const double *values = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+        projection(0) = values[0];
+        projection(1) = values[1];
     }
 };
 
