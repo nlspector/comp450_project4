@@ -35,8 +35,8 @@ public:
     }
 };
 
-void pendulumODE(const ompl::control::ODESolver::StateType &q, const ompl::control::Control *control,
-                 ompl::control::ODESolver::StateType &qdot)
+void pendulumODE(const ompl::control::ODESolver::StateType& q, const ompl::control::Control *control,
+                 ompl::control::ODESolver::StateType& qdot)
 {
     // TODO: Fill in the ODE for the pendulum's dynamics
     void ODE(const oc::ODESolver::StateType &q, const oc::Control* u, oc::ODESolver::StateType& qdot)
@@ -44,15 +44,16 @@ void pendulumODE(const ompl::control::ODESolver::StateType &q, const ompl::contr
     {
      // Retrieve control values. pendulum theta is the first value
         const double *u = c->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
-        const double omega = u[0];
-    
+        const double torque = u[0];
         // Retrieve the current orientation of the pendulum.  The memory for ompl::base::SE2StateSpace is mapped as:
         // 0: theta
         const double theta = q[0];
+        const double omega = q[1]; // not sure if q has a [1]
+    
     
         // Ensure qdot is the same size as q.  Zero out all values.
         qdot.resize(q.size(), 0);
-    
+        // ode formula:
         qdot[0] = omega;            // theta-dot = omega
         qdot[1] = -1 * g * cos(theta) + u[0];  // omega-dot = -gcos(theta) + torque
     }
