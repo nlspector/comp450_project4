@@ -11,6 +11,12 @@
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/control/ODESolver.h>
 
+#include <ompl/control/planners/rrt/RRT.h>
+#include <ompl/control/planners/kpiece/KPIECE1.h>
+#include <ompl/control/spaces/RealVectorControlSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <ompl/base/spaces/SO2StateSpace.h>
+
 // Your implementation of RG-RRT
 #include "RG-RRT.h"
 
@@ -35,26 +41,27 @@ public:
     }
 };
 
-void pendulumODE(const ompl::control::ODESolver::StateType &q, const ompl::control::Control *control,
-                 ompl::control::ODESolver::StateType &qdot)
+void pendulumODE(const ompl::control::ODESolver::StateType& q, const ompl::control::Control *control,
+                 ompl::control::ODESolver::StateType& qdot)
 {
     // TODO: Fill in the ODE for the pendulum's dynamics
-    void ODE(const oc::ODESolver::StateType &q, const oc::Control* u, oc::ODESolver::StateType& qdot)
+    void ODE(const ompl::control::ODESolver::StateType &q, const ompl::control::Control* u, ompl::control::ODESolver::StateType& qdot)
     //q is state vector, u is control, qdot is output config,
     {
      // Retrieve control values. pendulum theta is the first value
         const double *u = c->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
-        const double omega = u[0];
-    
+        const double torque = u[0];
         // Retrieve the current orientation of the pendulum.  The memory for ompl::base::SE2StateSpace is mapped as:
         // 0: theta
         const double theta = q[0];
+        const double omega = q[1]; // not sure if q has a [1]
+    
     
         // Ensure qdot is the same size as q.  Zero out all values.
         qdot.resize(q.size(), 0);
-    
+        // ode formula:
         qdot[0] = omega;            // theta-dot = omega
-        qdot[1] = -1 * g * cos(theta) + u[0];  // omega-dot = -gcos(theta) + torque
+        qdot[1] = -1 * g * cos(theta) + torque;  // omega-dot = -gcos(theta) + torque
     }
 }
 
@@ -64,24 +71,54 @@ ompl::control::SimpleSetupPtr createPendulum(double torque)
     // planning.
     auto space(std::make_shared<ompl::base::CompoundStateSpace>());
     space->addSubspace(std::make_shared<ompl::base::SO2StateSpace>(), 1.0d);
-    space->addSubspace(std::make_shared<ompl::base::RealVectorSpace>(1), 1.0d);
+    auto speedSpace(std::make_shared<ompl::base::RealVectorStateSpace>(1));
+    speedSpace->setBounds(-10,10);
+    space->addSubspace(speedSpace, 1.0d);
+
     auto cspace(std::make_shared<ompl::control::RealVectorControlSpace>(space, 1));
     
-    auto si(std::make_shared<ompl::base::SpaceInformation>(space));
-    auto ss(std::make_shared<ompl::control::SimpleSetup>(si));
+    ompl::base::RealVectorBounds cbounds(1);
+    cbounds.setLow(-torque);
+    cbounds.setHigh(torque);
 
-    si->setStateValidityChecker(
-        [obstacles](const ompl::base::State *state) {
+    auto ss(std::make_shared<ompl::control::SimpleSetup>(cspace));
+    ompl::control::SpaceInformation *si = ss->getSpaceInformation().get();
+
+    // Speed is accounted for in the bounds of the speed space
+    ss->setStateValidityChecker(
+        [si](const ompl::base::State *state) {
             return true;
         }
     );
-    si->setup();
+
+    ompl::base::ScopedState<ompl::base::CompoundStateSpace> start(space);
+    start[0] = 0.0d;
+    start[1] = 0.0d;
+
+    ompl::base::ScopedState<ompl::base::CompoundStateSpace> goal(space);
+    goal[0] = 3.14d;
+    goal[1] = 0.0d;
+
+    ss->setStartAndGoalStates(start, goal, 0.05);
+
+    ss->setup();
+
+    return ss;
 }
 
 void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
 {
     // TODO: Do some motion planning for the pendulum
     // choice is what planner to use.
+    if (choice == 1) {
+        auto planner(std::make_shared<ompl::control::RRT>(ss->getSpaceInformation()));
+        ss->setPlanner(planner);
+    } 
+    else if (choice == 2) {
+        auto planner = std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation());
+        ss->setPlanner(planner);
+    }
+    ss->solve(5.0);
 }
 
 void benchmarkPendulum(ompl::control::SimpleSetupPtr &ss)

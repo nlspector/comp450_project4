@@ -39,10 +39,32 @@ public:
     }
 };
 
-void carODE(const ompl::control::ODESolver::StateType & /* q */, const ompl::control::Control * /* control */,
-            ompl::control::ODESolver::StateType & /* qdot */)
+void carODE(const ompl::control::ODESolver::StateType& q, const ompl::control::Control *control,
+                 ompl::control::ODESolver::StateType& qdot)
 {
-    // TODO: Fill in the ODE for the car's dynamics
+    // TODO: Fill in the ODE for the pendulum's dynamics
+    void ODE(const oc::ODESolver::StateType &q, const oc::Control* u, oc::ODESolver::StateType& qdot)
+    //q is state vector, u is control, qdot is output config,
+    {
+     // Retrieve control values. pendulum theta is the first value
+        const double *u = c->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
+        const double omega = u[0];
+        const double acceleration = u[1];
+        // Retrieve the current orientation of the pendulum.  The memory for ompl::base::SE2StateSpace is mapped as:
+        // 0: theta
+        const double x = q[0];
+        const double y = q[1]; // not sure if q has a [1]
+        const double theta = q[2];
+        const double velocity = q[3];
+    
+        // Ensure qdot is the same size as q.  Zero out all values.
+        qdot.resize(q.size(), 0);
+        // ode formula:
+        qdot[0] = velocity * cos(theta);  // x-dot = velocity * cos(theta)
+        qdot[1] = velocity * sin(theta);  // y-dot = velocoty * sin(theta)
+        qdot[2] = omega;  // theta-dot = omega
+        qdot[3] = acceleration;  // velocity-dot = acceleration
+    }
 }
 
 void makeStreet(std::vector<Rectangle> & /* obstacles */)
