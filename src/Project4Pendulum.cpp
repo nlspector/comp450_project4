@@ -11,6 +11,11 @@
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/control/ODESolver.h>
 
+#include <ompl/control/planners/rrt/RRT.h>
+#include <ompl/control/spaces/RealVectorControlSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <ompl/base/spaces/SO2StateSpace.h>
+
 // Your implementation of RG-RRT
 #include "RG-RRT.h"
 
@@ -39,7 +44,7 @@ void pendulumODE(const ompl::control::ODESolver::StateType& q, const ompl::contr
                  ompl::control::ODESolver::StateType& qdot)
 {
     // TODO: Fill in the ODE for the pendulum's dynamics
-    void ODE(const oc::ODESolver::StateType &q, const oc::Control* u, oc::ODESolver::StateType& qdot)
+    void ODE(const ompl::control::ODESolver::StateType &q, const ompl::control::Control* u, ompl::control::ODESolver::StateType& qdot)
     //q is state vector, u is control, qdot is output config,
     {
      // Retrieve control values. pendulum theta is the first value
@@ -65,11 +70,9 @@ ompl::control::SimpleSetupPtr createPendulum(double torque)
     // planning.
     auto space(std::make_shared<ompl::base::CompoundStateSpace>());
     space->addSubspace(std::make_shared<ompl::base::SO2StateSpace>(), 1.0d);
-    auto speedSpace(std::make_shared<ompl::base::RealVectorSpace>(1));
-    ompl::base::RealVectorBounds bounds(1);
-    bounds.setLow(-10);
-    bounds.setHigh(10);
-    space->addSubspace(bounds, 1.0d);
+    auto speedSpace(std::make_shared<ompl::base::RealVectorStateSpace>(1));
+    speedSpace->setBounds(-10,10);
+    space->addSubspace(speedSpace, 1.0d);
 
     auto cspace(std::make_shared<ompl::control::RealVectorControlSpace>(space, 1));
     
@@ -86,6 +89,17 @@ ompl::control::SimpleSetupPtr createPendulum(double torque)
             return true;
         }
     );
+
+    ompl::base::ScopedState<ompl::base::CompoundStateSpace> start(space);
+    start[0] = 0.0d;
+    start[1] = 0.0d;
+
+    ompl::base::ScopedState<ompl::base::CompoundStateSpace> goal(space);
+    goal[0] = 3.14d;
+    goal[1] = 0.0d;
+
+    ss->setStartAndGoalStates(start, goal, 0.05);
+
     ss->setup();
 
     return ss;
@@ -95,6 +109,15 @@ void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
 {
     // TODO: Do some motion planning for the pendulum
     // choice is what planner to use.
+    if (choice == 1) {
+        auto planner(std::make_shared<ompl::control::RRT>(ss->getSpaceInformation()));
+        ss->setPlanner(planner);
+    } 
+    // else if (choice == 2) {
+    //     auto planner = std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation());
+    //     ss->setPlanner(planner);
+    // }
+    ss->solve(5.0);
 }
 
 void benchmarkPendulum(ompl::control::SimpleSetupPtr &ss)
