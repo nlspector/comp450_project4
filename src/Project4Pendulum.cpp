@@ -12,6 +12,7 @@
 #include <ompl/control/ODESolver.h>
 
 #include <ompl/control/planners/rrt/RRT.h>
+#include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
@@ -113,10 +114,10 @@ void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
         auto planner(std::make_shared<ompl::control::RRT>(ss->getSpaceInformation()));
         ss->setPlanner(planner);
     } 
-    // else if (choice == 2) {
-    //     auto planner = std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation());
-    //     ss->setPlanner(planner);
-    // }
+    else if (choice == 2) {
+        auto planner = std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation());
+        ss->setPlanner(planner);
+    }
     ss->solve(5.0);
 }
 
