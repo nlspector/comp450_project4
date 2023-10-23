@@ -55,7 +55,7 @@ void pendulumODE(const ompl::control::ODESolver::StateType& q, const ompl::contr
         qdot.resize(q.size(), 0);
         // ode formula:
         qdot[0] = omega;            // theta-dot = omega
-        qdot[1] = -1 * g * cos(theta) + u[0];  // omega-dot = -gcos(theta) + torque
+        qdot[1] = -1 * g * cos(theta) + torque;  // omega-dot = -gcos(theta) + torque
     }
 }
 
