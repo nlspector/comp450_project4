@@ -28,12 +28,14 @@ public:
     unsigned int getDimension() const override
     {
         // TODO: The dimension of your projection for the car
-        return 0;
+        return 2;
     }
 
-    void project(const ompl::base::State * /* state */, Eigen::Ref<Eigen::VectorXd> /* projection */) const override
+    void project(const ompl::base::State *state, Eigen::Ref<Eigen::VectorXd> projection) const override
     {
-        // TODO: Your projection for the car
+        const double *values = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+        projection(0) = values[0];
+        projection(1) = values[1];
     }
 };
 
@@ -51,7 +53,20 @@ void makeStreet(std::vector<Rectangle> & /* obstacles */)
 ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> & /* obstacles */)
 {
     // TODO: Create and setup the car's state space, control space, validity checker, everything you need for planning.
-    return nullptr;
+    auto space(std::make_shared<ompl::base::CompoundStateSpace>());
+    space->addSubspace(std::make_shared<ompl::base::SE2StateSpace>(), 1.0d); // x,y,heading
+    space->addSubspace(std::make_shared<ompl::base::RealVectorSpace>(1), 1.0d); // velocity
+    auto cspace(std::make_shared<ompl::control::RealVectorControlSpace>(space, 2)); // turn speed, velocity
+    
+    auto si(std::make_shared<ompl::base::SpaceInformation>(space));
+    auto ss(std::make_shared<ompl::control::SimpleSetup>(si));
+
+    si->setStateValidityChecker(
+        [obstacles](const ompl::base::State *state) {
+            return true;
+        }
+    );
+    si->setup();
 }
 
 void planCar(ompl::control::SimpleSetupPtr &/* ss */, int /* choice */)

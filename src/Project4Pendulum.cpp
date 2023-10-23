@@ -27,7 +27,7 @@ public:
         return 2;
     }
 
-    void project(const ompl::base::State *state, Eigen::Ref<Eigen::VectorXd> *projection) const override
+    void project(const ompl::base::State *state, Eigen::Ref<Eigen::VectorXd> projection) const override
     {
         const double *values = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
         projection(0) = values[0];
@@ -76,8 +76,6 @@ ompl::control::SimpleSetupPtr createPendulum(double torque)
         }
     );
     si->setup();
-
-    return nullptr;
 }
 
 void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
