@@ -45,24 +45,24 @@ void pendulumODE(const ompl::control::ODESolver::StateType& q, const ompl::contr
                  ompl::control::ODESolver::StateType& qdot)
 {
     // TODO: Fill in the ODE for the pendulum's dynamics
-    void ODE(const ompl::control::ODESolver::StateType &q, const ompl::control::Control* u, ompl::control::ODESolver::StateType& qdot)
-    //q is state vector, u is control, qdot is output config,
-    {
-     // Retrieve control values. pendulum theta is the first value
-        const double *u = c->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
-        const double torque = u[0];
-        // Retrieve the current orientation of the pendulum.  The memory for ompl::base::SE2StateSpace is mapped as:
-        // 0: theta
-        const double theta = q[0];
-        const double omega = q[1]; // not sure if q has a [1]
-    
-    
-        // Ensure qdot is the same size as q.  Zero out all values.
-        qdot.resize(q.size(), 0);
-        // ode formula:
-        qdot[0] = omega;            // theta-dot = omega
-        qdot[1] = -1 * g * cos(theta) + torque;  // omega-dot = -gcos(theta) + torque
-    }
+        //q is state vector, u is control, qdot is output config,
+    // void ODE(const ompl::control::ODESolver::StateType &q, const ompl::control::Control* u, ompl::control::ODESolver::StateType& qdot)
+    // {
+    // Retrieve control values. pendulum theta is the first value
+    const double *u = control->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
+    const double torque = u[0];
+    // Retrieve the current orientation of the pendulum.  The memory for ompl::base::SE2StateSpace is mapped as:
+    // 0: theta
+    const double theta = q[0];
+    const double omega = q[1]; // not sure if q has a [1]
+
+
+    // Ensure qdot is the same size as q.  Zero out all values.
+    qdot.resize(q.size(), 0);
+    // ode formula:
+    qdot[0] = omega;            // theta-dot = omega
+    qdot[1] = -1 * 9.81 * cos(theta) + torque;  // omega-dot = -gcos(theta) + torque
+    // }
 }
 
 ompl::control::SimpleSetupPtr createPendulum(double torque)
@@ -101,8 +101,11 @@ ompl::control::SimpleSetupPtr createPendulum(double torque)
 
     ss->setStartAndGoalStates(start, goal, 0.05);
 
-    ss->setup();
+    auto odeSolver(std::make_shared<ompl::control::ODEBasicSolver<>>(ss->getSpaceInformation(), &pendulumODE));
+    ss->setStatePropagator(ompl::control::ODESolver::getStatePropagator(odeSolver));
 
+    ss->setup();
+    
     return ss;
 }
 
@@ -123,7 +126,7 @@ void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
     {
         std::cout << "Found solution:" << std::endl;
 
-        ss.getSolutionPath().asGeometric().printAsMatrix(std::cout);
+        ss->getSolutionPath().asGeometric().printAsMatrix(std::cout);
     }
     else {
         std::cout << "No solution found" << std::endl;
