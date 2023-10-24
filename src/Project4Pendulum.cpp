@@ -87,7 +87,7 @@ ompl::control::SimpleSetupPtr createPendulum(double torque)
     // Speed is accounted for in the bounds of the speed space
     ss->setStateValidityChecker(
         [si](const ompl::base::State *state) {
-            return si->satisfiesBounds(state)
+            return si->satisfiesBounds(state);
         }
     );
 
