@@ -118,7 +118,16 @@ void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
         auto planner = std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation());
         ss->setPlanner(planner);
     }
-    ss->solve(5.0);
+    ompl::base::PlannerStatus solved = ss->solve(5.0);
+    if (solved)
+    {
+        std::cout << "Found solution:" << std::endl;
+
+        ss.getSolutionPath().asGeometric().printAsMatrix(std::cout);
+    }
+    else {
+        std::cout << "No solution found" << std::endl;
+    }
 }
 
 void benchmarkPendulum(ompl::control::SimpleSetupPtr &ss)

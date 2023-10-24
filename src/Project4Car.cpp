@@ -67,12 +67,12 @@ void carODE(const ompl::control::ODESolver::StateType& q, const ompl::control::C
     }
 }
 
-void makeStreet(std::vector<Rectangle> & /* obstacles */)
+void makeStreet(std::vector<Rectangle> & obstacles)
 {
     // TODO: Fill in the vector of rectangles with your street environment.
 }
 
-ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> & /* obstacles */)
+ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
 {
     // TODO: Create and setup the car's state space, control space, validity checker, everything you need for planning.
     auto space(std::make_shared<ompl::base::CompoundStateSpace>());
@@ -85,7 +85,15 @@ ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> & /* obstacles */
 
     ss->setStateValidityChecker(
         [si](const ompl::base::State *state) {
-            return si->satisfiesBounds(state)
+            const ompl::base::RealVectorStateSpace::StateType* R2State = state->as<ompl::base::RealVectorStateSpace::StateType>();
+            double x = R2State->values[0];
+            double y = R2State->values[1];
+            for(size_t i = 0; i < obstacles.size(); ++i) {
+                if (rectangleToAABB(obstacles[i]).pointInsideAABB(x, y)) {
+                    return false;
+                }
+            }
+            return si->satisfiesBounds(state);
         }
     );
     si->setup();
@@ -101,7 +109,15 @@ void planCar(ompl::control::SimpleSetupPtr &ss, int choice)
         auto planner = std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation());
         ss->setPlanner(planner);
     }
-    ss->solve(5.0);
+    ompl::base::PlannerStatus solved = ss->solve(5.0);
+    if (solved)
+    {
+        std::cout << "Found solution:" << std::endl;
+        ss.getSolutionPath().asGeometric().printAsMatrix(std::cout);
+    }
+    else {
+        std::cout << "No solution found" << std::endl;
+    }
 }
 
 void benchmarkCar(ompl::control::SimpleSetupPtr &ss)
