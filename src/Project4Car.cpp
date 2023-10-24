@@ -83,21 +83,28 @@ ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> & /* obstacles */
     auto si(std::make_shared<ompl::base::SpaceInformation>(space));
     auto ss(std::make_shared<ompl::control::SimpleSetup>(si));
 
-    si->setStateValidityChecker(
-        [obstacles](const ompl::base::State *state) {
-            return true;
+    ss->setStateValidityChecker(
+        [si](const ompl::base::State *state) {
+            return si->satisfiesBounds(state)
         }
     );
     si->setup();
 }
 
-void planCar(ompl::control::SimpleSetupPtr &/* ss */, int /* choice */)
+void planCar(ompl::control::SimpleSetupPtr &ss, int choice)
 {
-    // TODO: Do some motion planning for the car
-    // choice is what planner to use.
+    if (choice == 1) {
+        auto planner(std::make_shared<ompl::control::RRT>(ss->getSpaceInformation()));
+        ss->setPlanner(planner);
+    } 
+    else if (choice == 2) {
+        auto planner = std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation());
+        ss->setPlanner(planner);
+    }
+    ss->solve(5.0);
 }
 
-void benchmarkCar(ompl::control::SimpleSetupPtr &/* ss */)
+void benchmarkCar(ompl::control::SimpleSetupPtr &ss)
 {
     // TODO: Do some benchmarking for the car
 }
