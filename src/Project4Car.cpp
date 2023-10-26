@@ -72,6 +72,7 @@ void carODE(const ompl::control::ODESolver::StateType& q, const ompl::control::C
 void makeStreet(std::vector<Rectangle> & obstacles)
 {
     obstacles.push_back({-5.,4.5,10.,2.});
+    obstacles.push_back({0.,1.,1.,1.});
 }
 
 ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
