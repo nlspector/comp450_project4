@@ -71,19 +71,51 @@ void carODE(const ompl::control::ODESolver::StateType& q, const ompl::control::C
 
 void makeStreet(std::vector<Rectangle> & obstacles)
 {
-    // TODO: Fill in the vector of rectangles with your street environment.
+    obstacles.push_back({-5.,4.5,10.,2.});
 }
 
 ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
 {
     // TODO: Create and setup the car's state space, control space, validity checker, everything you need for planning.
     auto space(std::make_shared<ompl::base::CompoundStateSpace>());
-    space->addSubspace(std::make_shared<ompl::base::SE2StateSpace>(), 1.0d); // x,y,heading
-    space->addSubspace(std::make_shared<ompl::base::RealVectorStateSpace>(1), 1.0d); // velocity
+    auto rigidBodySpace(std::make_shared<ompl::base::SE2StateSpace>());
+    ompl::base::RealVectorBounds rigidBodyBounds(2);
+    rigidBodyBounds.setLow(-10.0);
+    rigidBodyBounds.setHigh(10.0);
+    rigidBodySpace->setBounds(rigidBodyBounds);
+    space->addSubspace(rigidBodySpace, 1.0d); // x,y,heading
+
+    auto velocitySpace(std::make_shared<ompl::base::RealVectorStateSpace>(1));
+    ompl::base::RealVectorBounds velocityBounds(1);
+    velocityBounds.setLow(-10.0);
+    velocityBounds.setHigh(10.0);
+    velocitySpace->setBounds(velocityBounds);
+    space->addSubspace(velocitySpace, 1.0d); // velocity
+
     auto cspace(std::make_shared<ompl::control::RealVectorControlSpace>(space, 2)); // turn speed, velocity
-    
+
+    ompl::base::RealVectorBounds cbounds(2);
+    cbounds.setLow(-3.0);
+    cbounds.setHigh(3.0);
+    cspace->setBounds(cbounds);
+
+
     auto ss(std::make_shared<ompl::control::SimpleSetup>(cspace));
     ompl::base::SpaceInformationPtr si = ss->getSpaceInformation();
+
+    ompl::base::ScopedState<ompl::base::CompoundStateSpace> start(space);
+    start[0] = 0.0d;
+    start[1] = 0.0d;
+    start[2] = 0.0d;
+    start[3] = 0.0d;
+
+    ompl::base::ScopedState<ompl::base::CompoundStateSpace> goal(space);
+    goal[0] = 2.0d;
+    goal[1] = 0.0d;
+    goal[2] = 0.0d;
+    goal[3] = 0.0d;
+
+    ss->setStartAndGoalStates(start, goal);
 
     ss->setStateValidityChecker(
         [si, obstacles](const ompl::base::State *state) {
@@ -98,6 +130,7 @@ ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
             return si->satisfiesBounds(state);
         }
     );
+
 
     //TODO: Set start and goal states
     auto odeSolver(std::make_shared<ompl::control::ODEBasicSolver<>>(ss->getSpaceInformation(), &carODE));
@@ -114,14 +147,20 @@ void planCar(ompl::control::SimpleSetupPtr &ss, int choice)
         ss->setPlanner(planner);
     } 
     else if (choice == 2) {
-        auto planner = std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation());
+        auto projection(std::make_shared<CarProjection>(ss->getStateSpace().get()));
+        auto planner(std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation()));
+        planner->setProjectionEvaluator(projection);
         ss->setPlanner(planner);
     }
-    ompl::base::PlannerStatus solved = ss->solve(5.0);
+    ompl::base::PlannerStatus solved = ss->solve(15.0);
     if (solved)
     {
         std::cout << "Found solution:" << std::endl;
+
         ss->getSolutionPath().asGeometric().printAsMatrix(std::cout);
+        std::cout << "Controls:" << std::endl;
+        ss->getSolutionPath().printAsMatrix(std::cout);
+
     }
     else {
         std::cout << "No solution found" << std::endl;
