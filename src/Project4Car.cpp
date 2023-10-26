@@ -111,9 +111,9 @@ ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
 
     ompl::base::ScopedState<ompl::base::CompoundStateSpace> goal(space);
     goal[0] = 2.0d;
-    goal[1] = 0.0d;
+    goal[1] = 2.0d;
     goal[2] = 0.0d;
-    goal[3] = 0.0d;
+    goal[3] = 1.57d;
 
     ss->setStartAndGoalStates(start, goal);
 
