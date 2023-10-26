@@ -80,8 +80,8 @@ ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
     auto space(std::make_shared<ompl::base::CompoundStateSpace>());
     auto rigidBodySpace(std::make_shared<ompl::base::SE2StateSpace>());
     ompl::base::RealVectorBounds rigidBodyBounds(2);
-    rigidBodyBounds.setLow(-10.0);
-    rigidBodyBounds.setHigh(10.0);
+    rigidBodyBounds.setLow(-4.0);
+    rigidBodyBounds.setHigh(4.0);
     rigidBodySpace->setBounds(rigidBodyBounds);
     space->addSubspace(rigidBodySpace, 1.0d); // x,y,heading
 
@@ -112,8 +112,8 @@ ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
     ompl::base::ScopedState<ompl::base::CompoundStateSpace> goal(space);
     goal[0] = 2.0d;
     goal[1] = 2.0d;
-    goal[2] = 0.0d;
-    goal[3] = 1.57d;
+    goal[2] = 1.57d;
+    goal[3] = 0.0d;
 
     ss->setStartAndGoalStates(start, goal);
 
