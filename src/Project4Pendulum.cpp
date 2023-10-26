@@ -81,6 +81,8 @@ ompl::control::SimpleSetupPtr createPendulum(double torque)
     cbounds.setLow(-torque);
     cbounds.setHigh(torque);
 
+    cspace->setBounds(cbounds);
+
     auto ss(std::make_shared<ompl::control::SimpleSetup>(cspace));
     ompl::control::SpaceInformation *si = ss->getSpaceInformation().get();
 
@@ -118,7 +120,9 @@ void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
         ss->setPlanner(planner);
     } 
     else if (choice == 2) {
-        auto planner = std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation());
+        auto projection(std::make_shared<PendulumProjection>(ss->getStateSpace().get()));
+        auto planner(std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation()));
+        planner->setProjectionEvaluator(projection);
         ss->setPlanner(planner);
     }
     ompl::base::PlannerStatus solved = ss->solve(5.0);
@@ -127,6 +131,9 @@ void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
         std::cout << "Found solution:" << std::endl;
 
         ss->getSolutionPath().asGeometric().printAsMatrix(std::cout);
+        std::cout << "Controls:" << std::endl;
+        ss->getSolutionPath().printAsMatrix(std::cout);
+
     }
     else {
         std::cout << "No solution found" << std::endl;
