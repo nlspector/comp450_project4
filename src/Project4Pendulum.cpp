@@ -143,6 +143,19 @@ void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
 void benchmarkPendulum(ompl::control::SimpleSetupPtr &ss)
 {
     // TODO: Do some benchmarking for the pendulum
+    ss->setup();
+    ss->print();
+    ompl::tools::Benchmark b(*ss, "Benchmarking for Pendulum"); // create benchmark class
+    b.addPlanner(ompl::base::PlannerPtr(new ompl::control::RGRRT(ss->getSpaceInformation())));
+    b.addPlanner(ompl::base::PlannerPtr(new ompl::control::RRT(ss->getSpaceInformation()))); //add planners to evaluate
+    b.addPlanner(ompl::base::PlannerPtr(new ompl::control::KPIECE1(ss->getSpaceInformation())));
+    ompl::tools::Benchmark::Request req; // set benchmark parameters
+    req.maxTime = 15;
+    req.maxMem = 500;
+    req.runCount = 20;
+    req.displayProgress = true;
+    b.benchmark(req); // saving results
+    b.saveResultsToFile();
 }
 
 int main(int /* argc */, char ** /* argv */)
