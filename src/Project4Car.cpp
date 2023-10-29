@@ -170,8 +170,19 @@ void planCar(ompl::control::SimpleSetupPtr &ss, int choice)
 
 void benchmarkCar(ompl::control::SimpleSetupPtr &ss)
 {
-    // TODO: Do some benchmarking for the car
-}
+    ss->setup();
+    ss->print();
+    ompl::tools::Benchmark b(*ss, "Benchmarking for Car"); // create benchmark class
+    b.addPlanner(ompl::base::PlannerPtr(new ompl::control::RGRRT(ss->getSpaceInformation())));
+    b.addPlanner(ompl::base::PlannerPtr(new ompl::control::RRT(ss->getSpaceInformation()))); //add planners to evaluate
+    b.addPlanner(ompl::base::PlannerPtr(new ompl::control::KPIECE1(ss->getSpaceInformation())));
+    ompl::tools::Benchmark::Request req; // set benchmark parameters
+    req.maxTime = 25;
+    req.maxMem = 1000;
+    req.runCount = 20;
+    req.displayProgress = true;
+    b.benchmark(req); // saving results
+    b.saveResultsToFile();}
 
 int main(int /* argc */, char ** /* argv */)
 {
