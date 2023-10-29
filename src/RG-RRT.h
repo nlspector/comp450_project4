@@ -1,7 +1,7 @@
 ///////////////////////////////////////
 // COMP/ELEC/MECH 450/550
 // Project 4
-// Authors: FILL ME OUT!!
+// Authors: Ian Rundle, Noah Spector, Sam Sarver
 //////////////////////////////////////
 
 #ifndef RGRRT_H
@@ -104,6 +104,11 @@ namespace ompl
 
                 /** \brief The parent motion in the exploration tree */
                 Motion *parent{nullptr};
+
+                /** \brief The vector of reachable states */
+                std::vector<ompl::base::State> *reachables;
+
+                void constructReachables();
             };
 
             /** \brief Free the memory allocated by this planner */
