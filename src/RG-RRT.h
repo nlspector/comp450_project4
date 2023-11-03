@@ -7,12 +7,16 @@
 #ifndef RGRRT_H
 #define RGRRT_H
 
+#include "ompl/control/planners/PlannerIncludes.h"
+#include "ompl/datastructures/NearestNeighbors.h"
+#include "ompl/control/spaces/RealVectorControlSpace.h"
+
 namespace ompl
 {
     namespace control
     {
 
-        class RGRRT : public base::Planner
+        class RGRRT : public ompl::base::Planner
         {
         public:
             /** \brief Constructor */
@@ -21,7 +25,7 @@ namespace ompl
             ~RGRRT() override;
 
             /** \brief Continue solving for some amount of time. Return true if solution was found. */
-            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
+            ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override;
 
             /** \brief Clear datastructures. Call this function if the
                 input data to the planner has changed and you do not
@@ -60,7 +64,7 @@ namespace ompl
                 addIntermediateStates_ = addIntermediateStates;
             }
 
-            void getPlannerData(base::PlannerData &data) const override;
+            void getPlannerData(ompl::base::PlannerData &data) const override;
 
             /** \brief Set a different nearest neighbors datastructure */
             template <template <typename T> class NN>
@@ -94,7 +98,7 @@ namespace ompl
                 ~Motion() = default;
 
                 /** \brief The state contained by the motion */
-                base::State *state{nullptr};
+                ompl::base::State *state{nullptr};
 
                 /** \brief The control contained by the motion */
                 Control *control{nullptr};
@@ -106,9 +110,22 @@ namespace ompl
                 Motion *parent{nullptr};
 
                 /** \brief The vector of reachable states */
-                std::vector<ompl::base::State> *reachables;
+                std::vector<ompl::base::State *> reachables;
 
-                void constructReachables();
+                void constructReachables(const SpaceInformation *si, const SpaceInformation *siC)
+                {
+                    for (int i = 0; i <= 10; i++) {
+                        ompl::base::State *s = si->allocState();
+                        ompl::control::Control *c = siC->allocControl();
+                        const std::vector<double>& low = siC->getControlSpace()->as<ompl::control::RealVectorControlSpace>()->getBounds().low;
+                        const std::vector<double>& high = siC->getControlSpace()->as<ompl::control::RealVectorControlSpace>()->getBounds().high;
+                        auto *rcontrol = static_cast<RealVectorControlSpace::ControlType *>(c);
+                        rcontrol->values[0] = low[0] + (high[0] - low[0]) / i;
+                        si->propagate(state, c, 1, s);
+                        reachables.push_back(s);
+                        std::cout << *(rcontrol->values) << std::endl;
+                    }
+                }
             };
 
             /** \brief Free the memory allocated by this planner */
@@ -121,7 +138,7 @@ namespace ompl
             }
 
             /** \brief State sampler */
-            base::StateSamplerPtr sampler_;
+            ompl::base::StateSamplerPtr sampler_;
 
             /** \brief Control sampler */
             DirectedControlSamplerPtr controlSampler_;

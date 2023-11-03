@@ -17,6 +17,8 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 
+#include <ompl/tools/benchmark/Benchmark.h>
+
 // Your implementation of RG-RRT
 #include "RG-RRT.h"
 
@@ -123,6 +125,9 @@ void planPendulum(ompl::control::SimpleSetupPtr &ss, int choice)
         auto projection(std::make_shared<PendulumProjection>(ss->getStateSpace().get()));
         auto planner(std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation()));
         planner->setProjectionEvaluator(projection);
+        ss->setPlanner(planner);
+    } else if (choice == 3) {
+        auto planner(std::make_shared<ompl::control::RGRRT>(ss->getSpaceInformation()));
         ss->setPlanner(planner);
     }
     ompl::base::PlannerStatus solved = ss->solve(5.0);

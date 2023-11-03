@@ -16,6 +16,7 @@
 #include <ompl/control/spaces/RealVectorControlSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
+#include <ompl/tools/benchmark/Benchmark.h>
 
 // The collision checker routines
 #include "CollisionChecking.h"
@@ -152,7 +153,11 @@ void planCar(ompl::control::SimpleSetupPtr &ss, int choice)
         auto planner(std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation()));
         planner->setProjectionEvaluator(projection);
         ss->setPlanner(planner);
+    } else if (choice == 3) {
+        auto planner(std::make_shared<ompl::control::RGRRT>(ss->getSpaceInformation()));
+        ss->setPlanner(planner);
     }
+    
     ompl::base::PlannerStatus solved = ss->solve(15.0);
     if (solved)
     {

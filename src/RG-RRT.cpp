@@ -27,7 +27,7 @@ ompl::control::RGRRT::~RGRRT()
 
 void ompl::control::RGRRT::setup()
 {
-    base::Planner::setup();
+    ompl::base::Planner::setup();
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
     nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
@@ -35,7 +35,7 @@ void ompl::control::RGRRT::setup()
 
 void ompl::control::RGRRT::clear()
 {
-    Planner::clear();
+    ompl::base::Planner::clear();
     sampler_.reset();
     controlSampler_.reset();
     freeMemory();
@@ -61,20 +61,6 @@ void ompl::control::RGRRT::freeMemory()
     }
 }
 
-ompl::control::RGRRT::Motion::constructReachables()
-{
-    reachables = new std::vector<ompl::base::State>();
-    for (int i = 0; i <= 10; i++) {
-        ompl::base::State *s = si_->allocState();
-        ompl::control::Control *c;
-        siC_->copyControl(c, s->control);
-        c->as<ompl::control::RealVectorControlSpace::ControlType>()->values[0] = siC->getStateSpace()->bounds(0).low + (siC->getStateSpace()->bounds(0).high - siC->getStateSpace()->bounds(0).low) * i / 10;
-        si_->propagate(state, ctr, 1, s);
-        reachables.push_back(s);
-        out << s << std::endl;
-    }
-}
-
 ompl::base::PlannerStatus ompl::control::RGRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
@@ -86,7 +72,7 @@ ompl::base::PlannerStatus ompl::control::RGRRT::solve(const base::PlannerTermina
         auto *motion = new Motion(siC_);
         si_->copyState(motion->state, st);
         siC_->nullControl(motion->control);
-        motion->calculateReachables()
+        motion->constructReachables(dynamic_cast<ompl::control::SpaceInformation *>(si_.get()), siC_);
         nn_->add(motion);
     }
 
