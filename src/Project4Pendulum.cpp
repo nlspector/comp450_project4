@@ -153,7 +153,10 @@ void benchmarkPendulum(ompl::control::SimpleSetupPtr &ss)
     ompl::tools::Benchmark b(*ss, "Benchmarking for Pendulum"); // create benchmark class
     b.addPlanner(ompl::base::PlannerPtr(new ompl::control::RGRRT(ss->getSpaceInformation())));
     b.addPlanner(ompl::base::PlannerPtr(new ompl::control::RRT(ss->getSpaceInformation()))); //add planners to evaluate
-    b.addPlanner(ompl::base::PlannerPtr(new ompl::control::KPIECE1(ss->getSpaceInformation())));
+    auto projection(std::make_shared<PendulumProjection>(ss->getStateSpace().get()));
+    auto planner(std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation()));
+    planner->setProjectionEvaluator(projection);
+    b.addPlanner(planner);
     ompl::tools::Benchmark::Request req; // set benchmark parameters
     req.maxTime = 15;
     req.maxMem = 500;
