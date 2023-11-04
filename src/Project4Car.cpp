@@ -72,8 +72,9 @@ void carODE(const ompl::control::ODESolver::StateType& q, const ompl::control::C
 
 void makeStreet(std::vector<Rectangle> & obstacles)
 {
-    obstacles.push_back({-5.,4.5,10.,2.});
-    obstacles.push_back({0.,1.,1.,1.});
+    obstacles.push_back({0.,1.,3.,0.5});
+    obstacles.push_back({1.,-1.,1.,2});
+
 }
 
 ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
@@ -121,15 +122,15 @@ ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
 
     ss->setStateValidityChecker(
         [si, obstacles](const ompl::base::State *state) {
-            const ompl::base::RealVectorStateSpace::StateType* R2State = state->as<ompl::base::RealVectorStateSpace::StateType>();
-            double x = R2State->values[0];
-            double y = R2State->values[1];
-            for(size_t i = 0; i < obstacles.size(); ++i) {
-                if (rectangleToAABB(obstacles[i]).pointInsideAABB(x, y)) {
-                    return false;
-                }
-            }
-            return si->satisfiesBounds(state);
+            // const ompl::base::RealVectorStateSpace::StateType* R2State = state->as<ompl::base::RealVectorStateSpace::StateType>();
+            // double x = R2State->values[0];
+            // double y = R2State->values[1];
+            // for(size_t i = 0; i < obstacles.size(); ++i) {
+            //     if (rectangleToAABB(obstacles[i]).pointInsideAABB(x, y)) {
+            //         return false;
+            //     }
+            // }
+            return isValidStatePoint(state, obstacles) && si->satisfiesBounds(state);
         }
     );
 
