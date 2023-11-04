@@ -120,7 +120,7 @@ namespace ompl
                         const std::vector<double>& low = siC->getControlSpace()->as<ompl::control::RealVectorControlSpace>()->getBounds().low;
                         const std::vector<double>& high = siC->getControlSpace()->as<ompl::control::RealVectorControlSpace>()->getBounds().high;
                         auto *rcontrol = static_cast<RealVectorControlSpace::ControlType *>(c);
-                        rcontrol->values[0] = low[0] + (high[0] - low[0]) / i;
+                        rcontrol->values[0] = low[0] + (high[0] - low[0]) * i / 10;
                         si->propagate(state, c, 1, s);
                         reachables.push_back(s);
                         std::cout << *(rcontrol->values) << std::endl;
