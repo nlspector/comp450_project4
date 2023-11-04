@@ -110,23 +110,31 @@ ompl::base::PlannerStatus ompl::control::RGRRT::solve(const base::PlannerTermina
         Motion *nmotion = nn_->nearest(rmotion);
 
         /* sample a random control that attempts to go towards the random state, and also sample a control duration */
-        if nmotion->reachables.size() == 0 {
-            nmotion->constructReachables();
+        if(nmotion->reachables.size() == 0) {
+            nmotion->constructReachables(dynamic_cast<ompl::control::SpaceInformation *>(si_.get()), siC_);
         }
-        Motion *closest_reachable = nmotion;
+        ompl::base::State *closest_reachable = nmotion->state;
         for(int i = 0; i <= 10; i++) {
             if (si_->distance(closest_reachable, rstate) > si_->distance(nmotion->reachables[i], rstate)) {
                 closest_reachable = nmotion->reachables[i];
             }
         }
-        if(closest_reachable == nmotion){
-            nn_->remove(nmotion);
+
+        //If the closest reachable state is the original one, discard it and try again
+        if(closest_reachable == nmotion->state){
+
             continue;
         }
-        nn_->add(closest_reachable);
-        closest_reachable->constructReachables();
+        //otherwise, our random motion was a good pick
+        unsigned int cd = controlSampler_->sampleTo(rctrl, nmotion->control, nmotion->state, rmotion->state);
+
+        // auto *new_motion = new Motion(dynamic_cast<ompl::control::SpaceInformation *>(si_.get()));
+        // new_motion->state = closest_reachable;
+        // nn_->add(new_motion);
+        // new_motion->constructReachables(dynamic_cast<ompl::control::SpaceInformation *>(si_.get()), siC_);
 
         // FROM HERE THE CODE IS FROM RRT AND PROBABLY NEEDS TO BE CHANGED
+
 
         if (addIntermediateStates_)
         {
