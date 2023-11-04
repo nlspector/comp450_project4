@@ -181,7 +181,7 @@ void benchmarkCar(ompl::control::SimpleSetupPtr &ss)
     ompl::tools::Benchmark b(*ss, "Benchmarking for Car"); // create benchmark class
     b.addPlanner(ompl::base::PlannerPtr(new ompl::control::RGRRT(ss->getSpaceInformation())));
     b.addPlanner(ompl::base::PlannerPtr(new ompl::control::RRT(ss->getSpaceInformation()))); //add planners to evaluate
-    auto projection(std::make_shared<PendulumProjection>(ss->getStateSpace().get()));
+    auto projection(std::make_shared<CarProjection>(ss->getStateSpace().get()));
     auto planner(std::make_shared<ompl::control::KPIECE1>(ss->getSpaceInformation()));
     planner->setProjectionEvaluator(projection);
     b.addPlanner(planner);
