@@ -188,7 +188,7 @@ void benchmarkCar(ompl::control::SimpleSetupPtr &ss)
     ompl::tools::Benchmark::Request req; // set benchmark parameters
     req.maxTime = 20;
     req.maxMem = 2000;
-    req.runCount = 20;
+    req.runCount = 50;
     req.displayProgress = true;
     b.benchmark(req); // saving results
     b.saveResultsToFile();}
