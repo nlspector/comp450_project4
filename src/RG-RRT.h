@@ -123,7 +123,7 @@ namespace ompl
                         rcontrol->values[0] = low[0] + (high[0] - low[0]) * (double)(i / 10.0);
                         si->propagate(state, c, 1, s);
                         reachables.push_back(s);
-                        std::cout << *(rcontrol->values) << std::endl;
+                        // std::cout << *(rcontrol->values) << std::endl;
                     }
                 }
             };
