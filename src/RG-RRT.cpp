@@ -100,6 +100,7 @@ ompl::base::PlannerStatus ompl::control::RGRRT::solve(const base::PlannerTermina
 
     while (ptc == false)
     {
+        
         /* sample random state (with goal biasing) */
         if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
@@ -108,6 +109,8 @@ ompl::base::PlannerStatus ompl::control::RGRRT::solve(const base::PlannerTermina
 
         /* find closest state in the tree */
         Motion *nmotion = nn_->nearest(rmotion);
+
+        unsigned int cd = controlSampler_->sampleTo(rctrl, nmotion->control, nmotion->state, rmotion->state);
 
         /* sample a random control that attempts to go towards the random state, and also sample a control duration */
         if(nmotion->reachables.size() == 0) {
@@ -125,8 +128,6 @@ ompl::base::PlannerStatus ompl::control::RGRRT::solve(const base::PlannerTermina
 
             continue;
         }
-        //otherwise, our random motion was a good pick
-        unsigned int cd = controlSampler_->sampleTo(rctrl, nmotion->control, nmotion->state, rmotion->state);
 
         // auto *new_motion = new Motion(dynamic_cast<ompl::control::SpaceInformation *>(si_.get()));
         // new_motion->state = closest_reachable;
