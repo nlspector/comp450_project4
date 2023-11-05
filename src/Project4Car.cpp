@@ -116,9 +116,9 @@ ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
     goal[0] = 6.0;
     goal[1] = 6.0;
     goal[2] = 1.57;
-    goal[3] = 1;
+    goal[3] = 0;
 
-    ss->setStartAndGoalStates(start, goal);
+    ss->setStartAndGoalStates(start, goal, 0.5);
 
     ss->setStateValidityChecker(
         [si, obstacles](const ompl::base::State *state) {
@@ -186,7 +186,7 @@ void benchmarkCar(ompl::control::SimpleSetupPtr &ss)
     planner->setProjectionEvaluator(projection);
     b.addPlanner(planner);
     ompl::tools::Benchmark::Request req; // set benchmark parameters
-    req.maxTime = 25;
+    req.maxTime = 20;
     req.maxMem = 2000;
     req.runCount = 20;
     req.displayProgress = true;
