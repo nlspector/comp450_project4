@@ -72,8 +72,8 @@ void carODE(const ompl::control::ODESolver::StateType& q, const ompl::control::C
 
 void makeStreet(std::vector<Rectangle> & obstacles)
 {
-    obstacles.push_back({0.,1.,3.,0.5});
-    obstacles.push_back({1.,-1.,1.,2});
+    obstacles.push_back({3,2,1,2});
+    obstacles.push_back({4,5,2,1});
 
 }
 
@@ -83,8 +83,8 @@ ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
     auto space(std::make_shared<ompl::base::CompoundStateSpace>());
     auto rigidBodySpace(std::make_shared<ompl::base::SE2StateSpace>());
     ompl::base::RealVectorBounds rigidBodyBounds(2);
-    rigidBodyBounds.setLow(-4.0);
-    rigidBodyBounds.setHigh(4.0);
+    rigidBodyBounds.setLow(0.0);
+    rigidBodyBounds.setHigh(7.0);
     rigidBodySpace->setBounds(rigidBodyBounds);
     space->addSubspace(rigidBodySpace, 1.0d); // x,y,heading
 
@@ -98,8 +98,8 @@ ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
     auto cspace(std::make_shared<ompl::control::RealVectorControlSpace>(space, 2)); // turn speed, velocity
 
     ompl::base::RealVectorBounds cbounds(2);
-    cbounds.setLow(-3.0);
-    cbounds.setHigh(3.0);
+    cbounds.setLow(-4.0);
+    cbounds.setHigh(4.0);
     cspace->setBounds(cbounds);
 
 
@@ -107,16 +107,16 @@ ompl::control::SimpleSetupPtr createCar(std::vector<Rectangle> &obstacles)
     ompl::base::SpaceInformationPtr si = ss->getSpaceInformation();
 
     ompl::base::ScopedState<ompl::base::CompoundStateSpace> start(space);
-    start[0] = 0.0d;
-    start[1] = 0.0d;
-    start[2] = 0.0d;
-    start[3] = 0.0d;
+    start[0] = 1.0;
+    start[1] = 1.0;
+    start[2] = 0.0;
+    start[3] = 0.0;
 
     ompl::base::ScopedState<ompl::base::CompoundStateSpace> goal(space);
-    goal[0] = 2.0d;
-    goal[1] = 2.0d;
-    goal[2] = 1.57d;
-    goal[3] = 0.0d;
+    goal[0] = 6.0;
+    goal[1] = 6.0;
+    goal[2] = 1.57;
+    goal[3] = 1;
 
     ss->setStartAndGoalStates(start, goal);
 
@@ -187,7 +187,7 @@ void benchmarkCar(ompl::control::SimpleSetupPtr &ss)
     b.addPlanner(planner);
     ompl::tools::Benchmark::Request req; // set benchmark parameters
     req.maxTime = 25;
-    req.maxMem = 1000;
+    req.maxMem = 2000;
     req.runCount = 20;
     req.displayProgress = true;
     b.benchmark(req); // saving results
